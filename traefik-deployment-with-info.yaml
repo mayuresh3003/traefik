@@ -1,0 +1,36 @@
+apiVersion: apps/v1                    # API version for Deployments
+kind: Deployment                       # Creating a Deployment resource
+metadata:
+  name: traefik                        # Name of the Deployment
+  namespace: traefik                   # Deploy it in the 'traefik' namespace
+  labels:
+    app: traefik                       # Label used for identification
+spec:
+  replicas: 1                          # Run only 1 Traefik pod
+  selector:
+    matchLabels:
+      app: traefik                     # Match pods having this label
+  template:
+    metadata:
+      labels:
+        app: traefik                   # Labels applied to the pod
+    spec:
+      serviceAccountName: traefik-ingress-controller   # Pod uses this ServiceAccount
+      containers:
+        - name: traefik                # Container name
+          image: traefik:latest        # Traefik image (latest for demo, not for prod)
+          args:                        # Command-line arguments for Traefik
+            - --api.dashboard=true     # Enable Traefik dashboard
+            - --api.insecure=true      # Allow dashboard access without auth (demo only)
+            - --entryPoints.web.address=:80       # Define HTTP entrypoint on port 80
+            - --entryPoints.websecure.address=:443 # Define HTTPS entrypoint on port 443
+            - --providers.kubernetesingress=true  # Enable Kubernetes Ingress provider
+            - --log.level=INFO         # Set log level to INFO
+          ports:
+            - name: web
+              containerPort: 80        # Expose HTTP port
+            - name: websecure
+              containerPort: 443       # Expose HTTPS port
+            - name: admin
+              containerPort: 8080      # Expose Traefik dashboard/API port
+

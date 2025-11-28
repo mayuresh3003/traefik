@@ -1,0 +1,22 @@
+apiVersion: v1                     # Using core API group version v1
+kind: Service                      # Creating a Service resource
+metadata:
+  name: traefik                    # Name of the Service
+  namespace: traefik               # Service is created in 'traefik' namespace
+  labels:
+    app: traefik                   # Label for identifying this Service
+spec:
+  selector:
+    app: traefik                   # Target pods having label app=traefik
+  type: ClusterIP                  # Service is only reachable inside the cluster
+  ports:
+    - name: web
+      port: 80                     # Service port for HTTP
+      targetPort: 80               # Maps to containerPort 80 in Traefik pod
+    - name: websecure
+      port: 443                    # Service port for HTTPS
+      targetPort: 443              # Maps to containerPort 443
+    - name: dashboard
+      port: 8080                   # Service port for Traefik dashboard/API
+      targetPort: 8080             # Maps to containerPort 8080
+

@@ -1,0 +1,35 @@
+apiVersion: rbac.authorization.k8s.io/v1   # Using RBAC API version v1
+kind: ClusterRole                          # Creating a ClusterRole (permissions across the cluster)
+metadata:
+  name: traefik-clusterrole-demo           # Name of the ClusterRole
+rules:                                     # List of permission rules
+  - apiGroups: [""]                        # "" = core API group (services, pods, etc.)
+    resources: ["services","endpoints","pods","secrets"]   # Resources Traefik needs to read
+    verbs: ["get","list","watch"]          # Allow only read-type operations
+  - apiGroups: ["extensions","networking.k8s.io"]  # API groups for ingresses
+    resources: ["ingresses"]               # Traefik needs to watch Ingress resources
+    verbs: ["get","list","watch"]          # Read-only operations on Ingress
+  - apiGroups: ["discovery.k8s.io"]        # API group for EndpointSlice (modern replacement for Endpoints)
+    resources: ["endpointslices"]          # Traefik uses these to know pod IPs
+    verbs: ["get","list","watch"]          # Allow reading and watching updates
+  - apiGroups: ["apiextensions.k8s.io"]    # API group for CRDs
+    resources: ["customresourcedefinitions"]   # Traefik needs CRD definitions for CRD-based routing
+    verbs: ["get","list","watch"]          # Allow read-only access
+  - apiGroups: ["*"]                       # "*" = ALL API groups (wildcard)
+    resources: ["*"]                       # "*" = ALL resources (wildcard)
+    verbs: ["*"]                           # "*" = ALL verbs (get, list, create, update, delete, etc.)
+
+---
+apiVersion: rbac.authorization.k8s.io/v1   # RBAC API version
+kind: ClusterRoleBinding                   # Bind the above ClusterRole to a ServiceAccount
+metadata:
+  name: traefik-clusterrolebinding-demo    # Name of the ClusterRoleBinding
+roleRef:                                   # Reference to the role being bound
+  apiGroup: rbac.authorization.k8s.io      # API group for roles
+  kind: ClusterRole                        # Type of role
+  name: traefik-clusterrole-demo           # The ClusterRole to bind
+subjects:                                  # Who will get the permissions
+  - kind: ServiceAccount                   # Subject type is a ServiceAccount
+    name: traefik-ingress-controller       # Name of ServiceAccount Traefik runs under
+    namespace: traefik                     # Namespace where ServiceAccount exists
+
