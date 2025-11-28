@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: traefik
   namespace: traefik
+  labels:
+    app: traefik
 spec:
   replicas: 1
   selector:
@@ -16,20 +18,19 @@ spec:
       serviceAccountName: traefik-ingress-controller
       containers:
         - name: traefik
+          # demo: use 'traefik:latest' or pin a specific version for production
           image: traefik:latest
           args:
-            - "--configfile=/etc/traefik/traefik.yaml"
+            - --api.dashboard=true            # enable dashboard
+            - --api.insecure=true             # demo: allow access without auth
+            - --entryPoints.web.address=:80
+            - --entryPoints.websecure.address=:443
+            - --providers.kubernetesingress=true
+            - --log.level=INFO
           ports:
             - name: web
               containerPort: 80
             - name: websecure
               containerPort: 443
             - name: admin
-              containerPort: 8080
-          volumeMounts:
-            - name: traefik-config
-              mountPath: /etc/traefik
-      volumes:
-        - name: traefik-config
-          configMap:
-            name: traefik-static-conf
+              containerPort: 8080    # Traefik API / Dashboard
