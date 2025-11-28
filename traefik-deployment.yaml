@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: traefik
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      containers:
+      - name: traefik
+        # pick a concrete tag like traefik:v3.0.10 instead of :latest for production
+        image: traefik:latest
+        args:
+          - --entrypoints.web.address=:80
+          - --entrypoints.websecure.address=:443
+          - --providers.kubernetescrd=true
+          - --api.dashboard=true
+        ports:
+          - name: web
+            containerPort: 80
+            protocol: TCP
+          - name: websecure
+            containerPort: 443
+            protocol: TCP
+          - name: admin
+            containerPort: 8080
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+
