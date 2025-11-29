@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1        # Use Traefik's custom API group/version for IngressRoute CRD
+kind: IngressRoute                     # Resource type: a Traefik-specific routing definition
+metadata:
+  name: whoami-route                   # Name of this IngressRoute object
+  namespace: traefik                   # Namespace where the route is defined
+spec:
+  entryPoints:
+    - web                              # Attach this route to the 'web' (port 80) entry point
+  routes:
+    - match: Host(`whoami.localhost`)  # Match requests whose Host header is exactly 'whoami.localhost'
+      kind: Rule                       # This is a Traefik rule-based route
+      services:
+        - name: whoami                 # Forward matched traffic to the Kubernetes Service named 'whoami'
+          port: 80                     # Use port 80 of the 'whoami' Service
+
